@@ -11,7 +11,7 @@ load_dotenv()
 mysql = MySQL()
 
 def create_app():
-    app = Flask(_name_, template_folder='app/templates', static_folder='app/static')
+    app = Flask(__name__, template_folder='app/templates', static_folder='app/static')
 
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
 
