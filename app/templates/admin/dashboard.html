@@ -1,0 +1,178 @@
+{% extends 'shared/base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_sub %}Overview of your parking facility{% endblock %}
+
+{% block content %}
+<!-- Stats Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
+  <div class="stat-card p-5">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-sm text-slate-500 font-medium">Total Slots</p>
+      <div class="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center">
+        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+      </div>
+    </div>
+    <p class="text-3xl font-display font-bold text-slate-800">{{ total_slots }}</p>
+    <p class="text-xs text-slate-400 mt-1">Total parking slots</p>
+  </div>
+
+  <div class="stat-card p-5">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-sm text-slate-500 font-medium">Occupied</p>
+      <div class="w-9 h-9 bg-red-50 rounded-xl flex items-center justify-center">
+        <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+      </div>
+    </div>
+    <p class="text-3xl font-display font-bold text-slate-800">{{ slot_counts.occupied }}</p>
+    <div class="flex items-center gap-2 mt-1">
+      <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+        <div class="h-full bg-red-400 rounded-full" style="width: {{ (slot_counts.occupied / total_slots * 100)|int }}%"></div>
+      </div>
+      <span class="text-xs text-slate-400">{{ (slot_counts.occupied / total_slots * 100)|int }}%</span>
+    </div>
+  </div>
+
+  <div class="stat-card p-5">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-sm text-slate-500 font-medium">Available</p>
+      <div class="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center">
+        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+    </div>
+    <p class="text-3xl font-display font-bold text-slate-800">{{ slot_counts.available }}</p>
+    <div class="flex items-center gap-2 mt-1">
+      <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+        <div class="h-full bg-green-400 rounded-full" style="width: {{ (slot_counts.available / total_slots * 100)|int }}%"></div>
+      </div>
+      <span class="text-xs text-slate-400">{{ (slot_counts.available / total_slots * 100)|int }}%</span>
+    </div>
+  </div>
+
+  <div class="stat-card p-5">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-sm text-slate-500 font-medium">Total Revenue</p>
+      <div class="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center">
+        <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+    </div>
+    <p class="text-3xl font-display font-bold text-slate-800">₹{{ "%.0f"|format(total_revenue) }}</p>
+    <p class="text-xs text-slate-400 mt-1">All time earnings</p>
+  </div>
+</div>
+
+<!-- Charts Row -->
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
+  <div class="card p-6">
+    <h3 class="font-display font-semibold text-slate-800 mb-1">Daily Revenue</h3>
+    <p class="text-xs text-slate-400 mb-4">Last 30 days</p>
+    <canvas id="dailyChart" height="180"></canvas>
+  </div>
+  <div class="card p-6">
+    <h3 class="font-display font-semibold text-slate-800 mb-1">Monthly Revenue</h3>
+    <p class="text-xs text-slate-400 mb-4">Last 12 months</p>
+    <canvas id="monthlyChart" height="180"></canvas>
+  </div>
+</div>
+
+<!-- Currently Parked -->
+<div class="card">
+  <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+    <div>
+      <h3 class="font-display font-semibold text-slate-800">Currently Parked</h3>
+      <p class="text-xs text-slate-400 mt-0.5">{{ parked_vehicles|length }} vehicle(s) active</p>
+    </div>
+    <a href="{{ url_for('admin.vehicle_entry') }}" class="btn-primary text-sm">+ New Entry</a>
+  </div>
+  {% if parked_vehicles %}
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th>Vehicle</th><th>Owner</th><th>Slot</th><th>Entry Time</th><th>Duration</th><th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in parked_vehicles %}
+        <tr>
+          <td><span class="font-semibold text-slate-700">{{ v.vehicle_number }}</span></td>
+          <td>{{ v.owner_name }}</td>
+          <td><span class="badge badge-blue">#{{ v.slot_number }}</span></td>
+          <td class="text-slate-500">{{ v.entry_time.strftime('%d %b, %I:%M %p') if v.entry_time else '-' }}</td>
+          <td class="text-slate-500" id="dur-{{ v.id }}" data-entry="{{ v.entry_time }}">—</td>
+          <td>
+            <a href="{{ url_for('admin.vehicle_exit', vehicle_id=v.id) }}" class="btn-success text-xs">Process Exit</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="text-center py-12 text-slate-400">
+    <div class="text-4xl mb-2">🅿️</div>
+    <p class="font-medium">No vehicles currently parked</p>
+    <p class="text-sm mt-1">Add a vehicle entry to get started</p>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+// Charts
+const dailyData = {{ daily_revenue | tojson }};
+const monthlyData = {{ monthly_revenue | tojson }};
+
+function mkChart(id, labels, data, color, label) {
+  const ctx = document.getElementById(id).getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label,
+        data,
+        backgroundColor: color + '22',
+        borderColor: color,
+        borderWidth: 2,
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => '₹' + ctx.parsed.y } } },
+      scales: {
+        y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { callback: v => '₹'+v } },
+        x: { grid: { display: false }, ticks: { maxRotation: 45 } }
+      }
+    }
+  });
+}
+
+mkChart('dailyChart',
+  dailyData.map(r => r.day ? String(r.day).slice(5) : ''),
+  dailyData.map(r => r.revenue),
+  '#3b82f6', 'Revenue'
+);
+mkChart('monthlyChart',
+  monthlyData.map(r => r.month || ''),
+  monthlyData.map(r => r.revenue),
+  '#10b981', 'Revenue'
+);
+
+// Live duration calculator
+function calcDuration(entryStr) {
+  const entry = new Date(entryStr.replace(' ', 'T'));
+  const now = new Date();
+  const diff = Math.floor((now - entry) / 1000);
+  const h = Math.floor(diff / 3600);
+  const m = Math.floor((diff % 3600) / 60);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+document.querySelectorAll('[data-entry]').forEach(el => {
+  const update = () => el.textContent = calcDuration(el.dataset.entry);
+  update();
+  setInterval(update, 30000);
+});
+</script>
+{% endblock %}

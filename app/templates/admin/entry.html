@@ -1,0 +1,59 @@
+{% extends 'shared/base.html' %}
+{% block title %}Vehicle Entry{% endblock %}
+{% block page_title %}Vehicle Entry{% endblock %}
+{% block page_sub %}Register a new vehicle into the parking facility{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto">
+  <div class="card p-8">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+      </div>
+      <div>
+        <h2 class="font-display font-semibold text-slate-800">New Vehicle Entry</h2>
+        <p class="text-xs text-slate-400">Slot will be auto-assigned</p>
+      </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('admin.vehicle_entry') }}" class="space-y-5">
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">Vehicle Number <span class="text-red-400">*</span></label>
+        <input type="text" name="vehicle_number" placeholder="e.g. RJ14AB1234" required
+               class="uppercase" oninput="this.value=this.value.toUpperCase()"/>
+        <p class="text-xs text-slate-400 mt-1">Will be stored in uppercase</p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">Owner Name <span class="text-red-400">*</span></label>
+        <input type="text" name="owner_name" placeholder="Full name of vehicle owner" required/>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">Assign to User</label>
+        <select name="user_id">
+          <option value="{{ session.user_id }}">{{ session.username }} (me)</option>
+          {% for u in users %}
+            {% if u.id != session.user_id %}
+            <option value="{{ u.id }}">{{ u.username }} ({{ u.role }})</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="bg-blue-50 rounded-xl p-4 text-sm">
+        <p class="font-medium text-blue-700 mb-1">📋 Parking Info</p>
+        <p class="text-blue-600">Rate: ₹20/hour &nbsp;•&nbsp; Minimum: ₹20</p>
+        <p class="text-blue-600">Slot will be auto-assigned from available slots</p>
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <a href="{{ url_for('admin.dashboard') }}" class="btn-ghost flex-1 text-center text-sm py-2.5">Cancel</a>
+        <button type="submit" class="btn-primary flex-1 text-sm py-2.5">Assign Slot & Park</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

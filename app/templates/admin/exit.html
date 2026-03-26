@@ -1,0 +1,61 @@
+{% extends 'shared/base.html' %}
+{% block title %}Vehicle Exit{% endblock %}
+{% block page_title %}Vehicle Exit{% endblock %}
+{% block page_sub %}Process exit and calculate parking fee{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto">
+  <div class="card p-8">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center">
+        <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+        </svg>
+      </div>
+      <div>
+        <h2 class="font-display font-semibold text-slate-800">Process Exit</h2>
+        <p class="text-xs text-slate-400">Confirm fee and release slot</p>
+      </div>
+    </div>
+
+    <!-- Vehicle Details -->
+    <div class="bg-slate-50 rounded-xl p-5 mb-6 space-y-3">
+      <div class="flex justify-between text-sm">
+        <span class="text-slate-500">Vehicle Number</span>
+        <span class="font-bold text-slate-800 text-base">{{ vehicle.vehicle_number }}</span>
+      </div>
+      <div class="flex justify-between text-sm">
+        <span class="text-slate-500">Owner</span>
+        <span class="font-medium text-slate-700">{{ vehicle.owner_name }}</span>
+      </div>
+      <div class="flex justify-between text-sm">
+        <span class="text-slate-500">Slot</span>
+        <span class="badge badge-blue">#{{ vehicle.slot_number }}</span>
+      </div>
+      <div class="flex justify-between text-sm">
+        <span class="text-slate-500">Entry Time</span>
+        <span class="text-slate-700">{{ vehicle.entry_time.strftime('%d %b %Y, %I:%M %p') if vehicle.entry_time else '-' }}</span>
+      </div>
+      <div class="flex justify-between text-sm">
+        <span class="text-slate-500">Duration</span>
+        <span class="font-medium text-slate-700">{{ "%.2f"|format(hours) }} hours</span>
+      </div>
+      <div class="border-t border-slate-200 pt-3 flex justify-between">
+        <span class="font-semibold text-slate-700">Total Fee</span>
+        <span class="text-2xl font-display font-bold text-blue-600">₹{{ "%.2f"|format(fee) }}</span>
+      </div>
+    </div>
+
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-700 mb-6">
+      ⚠️ This action will free slot <strong>#{{ vehicle.slot_number }}</strong> and generate a PDF receipt.
+    </div>
+
+    <form method="POST" action="{{ url_for('admin.vehicle_exit', vehicle_id=vehicle.id) }}" class="flex gap-3">
+      <a href="{{ url_for('admin.dashboard') }}" class="btn-ghost flex-1 text-center text-sm py-2.5">Cancel</a>
+      <button type="submit" class="btn-primary flex-1 text-sm py-2.5 bg-green-500 hover:bg-green-600">
+        ✅ Confirm Exit & Download Receipt
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,127 @@
+{% extends 'shared/base.html' %}
+{% block title %}My Dashboard{% endblock %}
+{% block page_title %}My Dashboard{% endblock %}
+{% block page_sub %}Your parking overview{% endblock %}
+
+{% block content %}
+<!-- Stats -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
+  <div class="stat-card p-5">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-sm text-slate-500 font-medium">Currently Parked</p>
+      <div class="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center">
+        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+      </div>
+    </div>
+    <p class="text-3xl font-display font-bold text-slate-800">{{ parked|length }}</p>
+    <p class="text-xs text-slate-400 mt-1">Active vehicles</p>
+  </div>
+
+  <div class="stat-card p-5">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-sm text-slate-500 font-medium">Total Trips</p>
+      <div class="w-9 h-9 bg-indigo-50 rounded-xl flex items-center justify-center">
+        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      </div>
+    </div>
+    <p class="text-3xl font-display font-bold text-slate-800">{{ exited|length }}</p>
+    <p class="text-xs text-slate-400 mt-1">Completed parkings</p>
+  </div>
+
+  <div class="stat-card p-5">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-sm text-slate-500 font-medium">Total Spent</p>
+      <div class="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center">
+        <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+    </div>
+    <p class="text-3xl font-display font-bold text-slate-800">₹{{ "%.0f"|format(total_spent) }}</p>
+    <p class="text-xs text-slate-400 mt-1">Total fees paid</p>
+  </div>
+
+  <div class="stat-card p-5">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-sm text-slate-500 font-medium">Slots Available</p>
+      <div class="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center">
+        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+    </div>
+    <p class="text-3xl font-display font-bold text-slate-800">{{ slot_counts.available }}</p>
+    <p class="text-xs text-slate-400 mt-1">Of {{ total_slots }} total slots</p>
+  </div>
+</div>
+
+<!-- Currently Parked -->
+{% if parked %}
+<div class="card mb-6">
+  <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+    <h3 class="font-display font-semibold text-slate-800">Currently Parked</h3>
+    <a href="{{ url_for('user.vehicle_entry') }}" class="btn-primary text-sm">+ Add Vehicle</a>
+  </div>
+  <div class="overflow-x-auto">
+    <table>
+      <thead><tr><th>Vehicle</th><th>Owner</th><th>Slot</th><th>Entry Time</th><th>Est. Fee</th></tr></thead>
+      <tbody>
+        {% for v in parked %}
+        <tr>
+          <td class="font-semibold text-slate-700">{{ v.vehicle_number }}</td>
+          <td>{{ v.owner_name }}</td>
+          <td><span class="badge badge-blue">#{{ v.slot_number }}</span></td>
+          <td class="text-slate-500 text-xs">{{ v.entry_time.strftime('%d %b, %I:%M %p') if v.entry_time else '—' }}</td>
+          <td class="text-emerald-600 font-medium" id="fee-{{ v.id }}" data-entry="{{ v.entry_time }}">Calculating…</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card p-10 text-center mb-6">
+  <div class="text-5xl mb-3">🚗</div>
+  <h3 class="font-display font-semibold text-slate-700 mb-1">No vehicles parked</h3>
+  <p class="text-slate-400 text-sm mb-4">Park your first vehicle to get started</p>
+  <a href="{{ url_for('user.vehicle_entry') }}" class="btn-primary inline-block">Park a Vehicle</a>
+</div>
+{% endif %}
+
+<!-- Recent History -->
+{% if exited %}
+<div class="card">
+  <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+    <h3 class="font-display font-semibold text-slate-800">Recent History</h3>
+    <a href="{{ url_for('user.history') }}" class="text-blue-500 text-sm hover:underline">View all →</a>
+  </div>
+  <div class="overflow-x-auto">
+    <table>
+      <thead><tr><th>Vehicle</th><th>Slot</th><th>Entry</th><th>Exit</th><th>Fee</th><th>Receipt</th></tr></thead>
+      <tbody>
+        {% for v in exited[:5] %}
+        <tr>
+          <td class="font-medium text-slate-700">{{ v.vehicle_number }}</td>
+          <td><span class="badge badge-gray">#{{ v.slot_number }}</span></td>
+          <td class="text-slate-500 text-xs">{{ v.entry_time.strftime('%d %b, %I:%M %p') if v.entry_time else '—' }}</td>
+          <td class="text-slate-500 text-xs">{{ v.exit_time.strftime('%d %b, %I:%M %p') if v.exit_time else '—' }}</td>
+          <td class="font-medium text-emerald-600">₹{{ "%.2f"|format(v.fee|float) }}</td>
+          <td>
+            <a href="{{ url_for('user.get_receipt', vehicle_id=v.id) }}" class="btn-ghost text-xs py-1 px-2">📄 PDF</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<script>
+function calcFee(entryStr) {
+  const entry = new Date(entryStr.replace(' ', 'T'));
+  const hours = (Date.now() - entry) / 3600000;
+  const fee = Math.max(hours * 20, 20);
+  return '₹' + fee.toFixed(2);
+}
+document.querySelectorAll('[data-entry]').forEach(el => {
+  el.textContent = calcFee(el.dataset.entry);
+});
+</script>
+{% endblock %}

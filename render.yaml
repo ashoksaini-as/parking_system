@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: parksmart
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:create_app() -c gunicorn.conf.py
+    envVars:
+      - key: MYSQL_HOST
+        value: your-mysql-host
+      - key: MYSQL_USER
+        value: your-mysql-user
+      - key: MYSQL_PASSWORD
+        sync: false
+      - key: MYSQL_DB
+        value: parking_db
+      - key: SECRET_KEY
+        generateValue: true

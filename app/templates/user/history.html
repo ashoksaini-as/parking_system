@@ -1,0 +1,78 @@
+{% extends 'shared/base.html' %}
+{% block title %}My History{% endblock %}
+{% block page_title %}My Parking History{% endblock %}
+{% block page_sub %}All your past and active parkings{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <form method="GET" action="{{ url_for('user.history') }}" class="flex gap-2 flex-1">
+      <input type="text" name="search" value="{{ search }}" placeholder="Search by vehicle or owner…" class="max-w-sm"/>
+      <input type="hidden" name="sort" value="{{ sort }}"/>
+      <input type="hidden" name="order" value="{{ order }}"/>
+      <button type="submit" class="btn-primary text-sm px-4">Search</button>
+      {% if search %}
+        <a href="{{ url_for('user.history') }}" class="btn-ghost text-sm px-4">Clear</a>
+      {% endif %}
+    </form>
+    <p class="text-sm text-slate-400">{{ vehicles|length }} record(s)</p>
+  </div>
+
+  <div class="overflow-x-auto">
+    {% macro sort_link(col, label) %}
+      {% set new_order = 'asc' if (sort == col and order == 'desc') else 'desc' %}
+      <a href="{{ url_for('user.history', search=search, sort=col, order=new_order) }}" class="flex items-center gap-1 hover:text-blue-500 transition-colors">
+        {{ label }}
+        {% if sort == col %}<span class="text-blue-500">{% if order == 'asc' %}↑{% else %}↓{% endif %}</span>{% else %}<span class="text-slate-300">↕</span>{% endif %}
+      </a>
+    {% endmacro %}
+    <table>
+      <thead>
+        <tr>
+          <th>{{ sort_link('vehicle_number', 'Vehicle') }}</th>
+          <th>{{ sort_link('owner_name', 'Owner') }}</th>
+          <th>{{ sort_link('slot_number', 'Slot') }}</th>
+          <th>{{ sort_link('entry_time', 'Entry') }}</th>
+          <th>{{ sort_link('exit_time', 'Exit') }}</th>
+          <th>{{ sort_link('fee', 'Fee') }}</th>
+          <th>{{ sort_link('status', 'Status') }}</th>
+          <th>Receipt</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in vehicles %}
+        <tr>
+          <td class="font-semibold text-slate-700">{{ v.vehicle_number }}</td>
+          <td>{{ v.owner_name }}</td>
+          <td><span class="badge {% if v.status == 'parked' %}badge-blue{% else %}badge-gray{% endif %}">#{{ v.slot_number }}</span></td>
+          <td class="text-slate-500 text-xs">{{ v.entry_time.strftime('%d %b %y, %I:%M %p') if v.entry_time else '—' }}</td>
+          <td class="text-slate-500 text-xs">{{ v.exit_time.strftime('%d %b %y, %I:%M %p') if v.exit_time else '—' }}</td>
+          <td class="font-medium {% if v.fee and v.fee > 0 %}text-emerald-600{% else %}text-slate-400{% endif %}">
+            {% if v.fee and v.fee|float > 0 %}₹{{ "%.2f"|format(v.fee|float) }}{% else %}—{% endif %}
+          </td>
+          <td>
+            <span class="badge {% if v.status == 'parked' %}badge-green{% else %}badge-gray{% endif %}">
+              {{ v.status }}
+            </span>
+          </td>
+          <td>
+            {% if v.status == 'exited' %}
+              <a href="{{ url_for('user.get_receipt', vehicle_id=v.id) }}" class="btn-ghost text-xs py-1 px-2">📄 PDF</a>
+            {% else %}
+              <span class="text-slate-300 text-xs">After exit</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8" class="text-center py-12 text-slate-400">
+            <div class="text-3xl mb-2">🚗</div>
+            <p>No records found{% if search %} for "{{ search }}"{% endif %}</p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends 'shared/base.html' %}
+{% block title %}Park Vehicle{% endblock %}
+{% block page_title %}Park a Vehicle{% endblock %}
+{% block page_sub %}Enter your vehicle details to get a slot{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto">
+  <div class="card p-8">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+      </div>
+      <div>
+        <h2 class="font-display font-semibold text-slate-800">Park Your Vehicle</h2>
+        <p class="text-xs text-slate-400">Slot auto-assigned on submission</p>
+      </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('user.vehicle_entry') }}" class="space-y-5">
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">Vehicle Number <span class="text-red-400">*</span></label>
+        <input type="text" name="vehicle_number" placeholder="e.g. RJ14AB1234" required
+               oninput="this.value=this.value.toUpperCase()"/>
+        <p class="text-xs text-slate-400 mt-1">Auto-converted to uppercase</p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">Owner Name <span class="text-red-400">*</span></label>
+        <input type="text" name="owner_name" placeholder="Full name of vehicle owner" required/>
+      </div>
+
+      <div class="bg-slate-50 rounded-xl p-4 text-sm space-y-1">
+        <p class="font-semibold text-slate-700 mb-2">📋 Pricing</p>
+        <div class="flex justify-between text-slate-600">
+          <span>Rate</span><span class="font-medium">₹20 / hour</span>
+        </div>
+        <div class="flex justify-between text-slate-600">
+          <span>Minimum Charge</span><span class="font-medium">₹20</span>
+        </div>
+        <div class="flex justify-between text-slate-600">
+          <span>Slot Assignment</span><span class="font-medium">Auto (first available)</span>
+        </div>
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <a href="{{ url_for('user.dashboard') }}" class="btn-ghost flex-1 text-center text-sm py-2.5">Cancel</a>
+        <button type="submit" class="btn-primary flex-1 text-sm py-2.5">Get Parking Slot</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends 'shared/base.html' %}
+{% block title %}Slot Grid{% endblock %}
+{% block page_title %}Slot Grid{% endblock %}
+{% block page_sub %}Visual overview of all 50 parking slots{% endblock %}
+
+{% block content %}
+<!-- Legend -->
+<div class="flex items-center gap-6 mb-6">
+  <div class="flex items-center gap-2">
+    <div class="w-5 h-5 rounded bg-green-100 border-2 border-green-300"></div>
+    <span class="text-sm text-slate-600 font-medium">Available ({{ slots | selectattr('status', 'eq', 'available') | list | length }})</span>
+  </div>
+  <div class="flex items-center gap-2">
+    <div class="w-5 h-5 rounded bg-red-100 border-2 border-red-300"></div>
+    <span class="text-sm text-slate-600 font-medium">Occupied ({{ slots | selectattr('status', 'eq', 'occupied') | list | length }})</span>
+  </div>
+</div>
+
+<!-- Occupancy bar -->
+{% set occupied_count = slots | selectattr('status', 'eq', 'occupied') | list | length %}
+<div class="card p-5 mb-6">
+  <div class="flex items-center justify-between mb-3">
+    <span class="text-sm font-medium text-slate-700">Occupancy Rate</span>
+    <span class="text-sm font-bold text-slate-800">{{ occupied_count }}/50</span>
+  </div>
+  <div class="h-3 bg-slate-100 rounded-full overflow-hidden">
+    <div class="h-full rounded-full transition-all duration-500
+      {% if occupied_count > 40 %}bg-red-400{% elif occupied_count > 25 %}bg-amber-400{% else %}bg-green-400{% endif %}"
+      style="width: {{ (occupied_count / 50 * 100)|int }}%"></div>
+  </div>
+  <p class="text-xs text-slate-400 mt-2">{{ (occupied_count / 50 * 100)|int }}% occupied</p>
+</div>
+
+<!-- Slot Grid -->
+<div class="card p-6">
+  <div class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-3">
+    {% for slot in slots %}
+    <div class="aspect-square flex flex-col items-center justify-center rounded-xl cursor-pointer transition-all hover:scale-105
+      {% if slot.status == 'available' %}slot-available{% else %}slot-occupied{% endif %}"
+      title="Slot #{{ slot.id }} — {{ slot.status }}">
+      <span class="text-xs font-bold">{{ slot.id }}</span>
+      {% if slot.status == 'available' %}
+        <span class="text-[9px] mt-0.5 opacity-70">FREE</span>
+      {% else %}
+        <svg class="w-3 h-3 mt-0.5 opacity-70" fill="currentColor" viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z"/></svg>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Occupied Slots Detail -->
+{% set occupied_slots = slots | selectattr('status', 'eq', 'occupied') | list %}
+{% if occupied_slots %}
+<div class="card mt-6">
+  <div class="px-6 py-4 border-b border-slate-100">
+    <h3 class="font-display font-semibold text-slate-800">Occupied Slots</h3>
+  </div>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr><th>Slot</th><th>Vehicle</th><th>Owner</th><th>Entry Time</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        {% for slot in occupied_slots %}
+          {# Find the vehicle for this slot - need to query separately #}
+          <tr>
+            <td><span class="badge badge-red">#{{ slot.id }}</span></td>
+            <td colspan="3" class="text-slate-400 text-sm italic">See history for details</td>
+            <td>
+              <a href="{{ url_for('admin.history') }}" class="btn-ghost text-xs">View</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
