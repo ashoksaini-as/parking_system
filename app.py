@@ -56,3 +56,4 @@ def create_app():
 if _name_ == '_main_':
     app = create_app()
     app.run(debug=True)
+app = create_app()
